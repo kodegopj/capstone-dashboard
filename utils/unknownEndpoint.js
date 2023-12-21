@@ -1,3 +1,3 @@
-// export default function unknownEndpoint(_, res) {
-//     return res.status(404).send({error: "unknown endpoint"});
-// };
+export default function unknownEndpoint(_, res) {
+    return res.status(404).send({error: "unknown endpoint"});
+};
