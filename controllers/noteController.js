@@ -1,5 +1,10 @@
 import Note from "../models/Note.js";
+import jwt from "jsonwebtoken";
+import getTokenFrom from "../utils/getTokenFrom.js";
+import config from "../utils/config.js";
 import User from "../models/User.js";
+
+
 
 async function getNotesInfo(_, res, next) {
     try {
@@ -46,51 +51,56 @@ async function deleteNote(req, res, next) {
 
 async function createNote(req, res, next) {
     const body = req.body;
-
-    const  user =  await User.findById(body.userId);
-
-    if (!body.content) {
-        return res.status(400).json({error: "content missing"});
-    }
-
-    const note = new Note({
-        content: body.content,
-        important: body.important || false,
-        userId: user.id,
-    });
-
     try {
-       const savedNote = await note.save().then((result) => result);
-       user.notes = user.notes.concat(savedNote._id);
-       await user.save();
-    
-        return res.status(201).json(savedNote);
-    } catch (error) {
-        next(error)
-    }
-};
+        const decodedToken = jwt.verify(getTokenFrom(req), config.JWT_SECRET);
 
-async function updateNote (req, res, next) {
-    const id = req.params.id;
-    const { content, important } = req.body;
-    const note = {
-        content,
-        important,
-    };
+        if (!decodedToken.id) {
+            return res.status(401).json({ error: "token invalid" });
+        }
 
-    try {
-      
-    
-        const updatedNote = await Note.findByIdAndUpdate(id, note, {
-            new: true, 
-            runValidators: true,
-            context: "querry",  
+        const user = await User.findById(decodedToken.id);
+
+        if (!body.content) {
+            return res.status(400).json({error: "content missing"});
+        }
+
+        const note = new Note({
+            content: body.content,
+            important: body.important || false,
+            userId: user.id,
         });
 
-        if (!updateNote) return res.status(404).send({error: "Note not found"})
-    
-        return res.status(200).json(updatedNote);
-    } catch (error) {
+        const savedNote = await note.save().then((result) => result);
+        user.notes = user.notes.concat(savedNote._id);
+        await user.save();  
+        
+            return res.status(201).json(savedNote);
+        } catch (error) {
+            next(error)
+        }
+     };
+
+        async function updateNote (req, res, next) {
+        const id = req.params.id;
+        const { content, important } = req.body;
+        const note = {
+            content,
+            important,
+        };
+
+        try {
+        
+        
+            const updatedNote = await Note.findByIdAndUpdate(id, note, {
+                new: true, 
+                runValidators: true,
+                context: "querry",  
+            });
+
+            if (!updateNote) return res.status(404).send({error: "Note not found"})
+        
+            return res.status(200).json(updatedNote);
+        } catch (error) {
         next(error);
     }
 
