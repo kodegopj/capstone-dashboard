@@ -80,34 +80,31 @@ async function createNote(req, res, next) {
         user.notes = user.notes.concat(savedNote._id);
         await user.save();  
         
-            return res.status(201).json(savedNote);
-        } catch (error) {
-            next(error)
-        }
-     };
+        return res.status(201).json(savedNote);
+    } catch (error) {
+        next(error)}
+};
 
-        async function updateNote (req, res, next) {
-        const id = req.params.id;
-        const { content, important } = req.body;
-        const note = {
-            content,
-            important,
-        };
+async function updateNote (req, res, next) {
+    const id = req.params.id;
+    const { content, important } = req.body;
+    const note = {
+        content,
+        important,
+    };
 
-        try {
-        
-        
-            const updatedNote = await Note.findByIdAndUpdate(id, note, {
-                new: true, 
-                runValidators: true,
-                context: "querry",  
-            });
+    try {
+        const updatedNote = await Note.findByIdAndUpdate(id, note, {
+            new: true, 
+            runValidators: true,
+            context: "querry",  
+        });
 
-            if (!updateNote) return res.status(404).send({error: "Note not found"})
-        
-            return res.status(200).json(updatedNote);
-        } catch (error) {
-        next(error);
+        if (!updateNote) return res.status(404).send({error: "Note not found"})
+    
+        return res.status(200).json(updatedNote);
+    } catch (error) {
+    next(error);
     }
 
 }

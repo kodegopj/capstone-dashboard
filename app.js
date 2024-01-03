@@ -7,6 +7,7 @@ import noteRouter from './routes/noteRouter.js'
 import errorHandler from './middlewares/errorHandler.js';
 import config from './utils/config.js';
 import userRouter from './routes/userRouter.js';
+import productRouter from './routes/productRouter.js'
 
 
 
@@ -28,6 +29,7 @@ app.use(morgan(":method :url :status :body"));
 
 app.use("/users", userRouter);
 app.use("/notes", noteRouter);
+app.use("/products", productRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
