@@ -30,7 +30,7 @@ app.use(morgan(":method :url :status :body"));
 app.use("/users", userRouter);
 app.use("/notes", noteRouter);
 app.use("/products", productRouter);
-app.use("/")
+
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
