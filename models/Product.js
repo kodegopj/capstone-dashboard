@@ -11,7 +11,10 @@ const productSchema = new mongoose.Schema({
     minLength: 5,
     required: true,
   },
+  qty: Number,
+  cost: Number,
   price: Number,
+  purchasedQuantity: Number,
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
