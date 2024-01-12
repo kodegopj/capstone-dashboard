@@ -16,7 +16,7 @@ async function getProductsInfo(_, res, next) {
     }
 };
 
-async function getProducts(req, res, next) {
+async function getProducts(_, res, next) {
    try {
      const products = await Product.find({}).populate("userId", {username: 1, name: 1});   
      return res.json(products);
@@ -24,6 +24,66 @@ async function getProducts(req, res, next) {
     next(error)
    }
 };
+
+async function getTotalNumOfPurchase(_, res, next) {
+    try {
+        const products = await Product.find({});
+        let sum = 0;
+    
+        for (let i = 0; i < products.length; i++) {
+            sum += products[i].purchasedQuantity || 0;
+        }
+    
+        return res.send(`${sum}`);
+    } catch(error) {
+    next(error)
+    }
+}
+
+async function getRevenue(_, res, next) {
+    try {
+        const products = await Product.find({});
+        let sum = 0;
+    
+        for (let i = 0; i < products.length; i++) {
+            sum += products[i].price * products[i].purchasedQuantity || 0;
+        }
+    
+        return res.send(`${sum}`);
+    } catch(error) {
+    next(error)
+    }
+}
+
+async function getProfit(_, res, next) {
+    try {
+        const products = await Product.find({});
+        let sum = 0;
+    
+        for (let i = 0; i < products.length; i++) {
+            sum += (products[i].price - products[i].cost) * products[i].purchasedQuantity || 0;
+        }
+    
+        return res.send(`${sum}`);
+    } catch(error) {
+    next(error)
+    }
+}
+
+async function getExpenses(_, res, next) {
+    try {
+        const products = await Product.find({});
+        let sum = 0;
+    
+        for (let i = 0; i < products.length; i++) {
+            sum += products[i].cost * products[i].purchasedQuantity || 0;
+        }
+    
+        return res.send(`${sum}`);
+    } catch(error) {
+    next(error)
+    }
+}
 
 async function getProduct(req, res, next) {
     const id = req.params.id;
@@ -65,8 +125,10 @@ async function createProduct(req, res, next) {
         }
 
         const product = new Product({
-            title: body.content,
+            title: body.title,
             description: body.description,
+            qty: body.qty || 0,
+            cost: body.cost || 0,
             price: body.price || 0,
             userId: user.id,
         });
@@ -82,10 +144,12 @@ async function createProduct(req, res, next) {
 
 async function updateProduct(req, res, next) {
     const id = req.params.id;
-    const { title, description, price } = req.body;
+    const { title, description, qty, cost, price } = req.body;
     const product = {
         title,
         description,
+        qty,
+        cost,
         price,
     };
 
@@ -93,24 +157,56 @@ async function updateProduct(req, res, next) {
         const updatedProduct = await Product.findByIdAndUpdate(id, product, {
             new: true, 
             runValidators: true,
-            context: "querry",  
+            context: "query",  
         });
 
         if (!updateProduct) return res.status(404).send({error: "Item not found"})
     
-        return res.status(200).json(updatedNote);
+        return res.status(200).json(updatedProduct);
     } catch (error) {
     next(error);
     }
 
 }
 
+async function productPurchase(req, res, next) {
+    const id = req.params.id;
+    const { title, purchasedQuantity } = req.body;
+
+    try {
+        // Find and update the product
+        const updatedProduct = await Product.findByIdAndUpdate(id, {
+            $inc: { qty: -purchasedQuantity,
+                purchasedQuantity: purchasedQuantity }, // Compute the quantity by purchasedQuantity
+        }, {
+            new: true,
+            runValidators: true,
+            context: "query",
+        });
+
+        // Check if the product was found
+        if (updatedProduct) {
+            console.log(`Purchase of ${purchasedQuantity} units of "${title}" successful.`);
+            return res.status(200).json(updatedProduct);
+        } else {
+            return res.status(404).send({ error: `Product ${title} not found.` });
+        }
+    } catch (error) {
+        next(error);
+    }
+}
+
 
 export default {
     getProductsInfo,
     getProducts,
+    getTotalNumOfPurchase,
+    getRevenue,
+    getProfit,
+    getExpenses,
     getProduct,
     deleteProduct,
     createProduct,
     updateProduct,
+    productPurchase,
 };
