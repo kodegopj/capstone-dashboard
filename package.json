@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "build:ui": "rm -rf dist && cd ../frontend && npm run build && cp -r dist ../backend"
+    "build:ui": "rm -rf dist && cd ../frontend-dashboard && npm run build && cp -r dist ../backend-dashboard"
   },
   "author": "Paul John",
   "license": "MIT",
